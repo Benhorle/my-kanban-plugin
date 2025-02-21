@@ -73,3 +73,31 @@ function mkp_render_kanban_board() {
     return ob_get_clean();
 }
 add_shortcode('my_kanban_board', 'mkp_render_kanban_board');
+// Trigger this function when the plugin is activated
+register_activation_hook(__FILE__, 'mkp_install_table');
+
+/**
+ * Creates custom table for the Kanban tasks upon plugin activation.
+ */
+function mkp_install_table() {
+    global $wpdb;
+
+    // Name of the table (wp_ is the prefix, $wpdb->prefix detects what your site is using).
+    $table_name = $wpdb->prefix . 'kanban_tasks';
+
+    // This gets the database character set/collation info
+    $charset_collate = $wpdb->get_charset_collate();
+
+    // Define the SQL for creating the table
+    // mediumint(9) is just an example data type for the ID. Adjust as needed.
+    $sql = "CREATE TABLE IF NOT EXISTS $table_name (
+        id mediumint(9) NOT NULL AUTO_INCREMENT,
+        title text NOT NULL,
+        lane varchar(50) NOT NULL DEFAULT 'todo',
+        PRIMARY KEY  (id)
+    ) $charset_collate;";
+
+    // dbDelta is a WordPress function that safely runs queries, creating or updating tables
+    require_once( ABSPATH . 'wp-admin/includes/upgrade.php' );
+    dbDelta( $sql );
+}
